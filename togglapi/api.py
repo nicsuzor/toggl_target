@@ -4,16 +4,17 @@
 
 import requests
 
-from urllib import urlencode
+from urllib.parse import urlencode
 from requests.auth import HTTPBasicAuth
 
 
 class TogglAPI(object):
     """A wrapper for Toggl Api"""
 
-    def __init__(self, api_token, timezone):
+    def __init__(self, api_token, timezone, useragent='Not specified'):
         self.api_token = api_token
         self.timezone  = timezone
+        self.useragent = useragent
 
     def _make_url(self, section='time_entries', params={}):
         """Constructs and returns an api url to call with the section of the API to be called
@@ -35,6 +36,18 @@ class TogglAPI(object):
             url = url + '?{}'.format(urlencode(params))
         return url
 
+    def _make_report_url(self, section='summary', params={}):
+        """ Construct an api call to https://toggl.com/reports/api/v2/summary
+        :param section:
+        :param params:
+        :return:
+        """
+
+        url = 'https://www.toggl.com/reports/api/v2/{}'.format(section)
+        if len(params) > 0:
+            url = url + '?{}'.format(urlencode(params))
+        return url
+
     def _query(self, url, method):
         """Performs the actual call to Toggl API"""
 
@@ -49,19 +62,20 @@ class TogglAPI(object):
             raise ValueError('Undefined HTTP method "{}"'.format(method))
 
     ## Time Entry functions
-    def get_time_entries(self, start_date='', end_date='', timezone=''):
+    def get_time_entries(self, start_date='', end_date='', timezone='', pid=''):
         """Get Time Entries JSON object from Toggl within a given start_date and an end_date with a given timezone"""
 
         url = self._make_url(section='time_entries', 
-                             params={'start_date': start_date+self.timezone, 'end_date': end_date+self.timezone})
+                             params={'start_date': start_date+self.timezone, 'end_date': end_date+self.timezone,
+                                     'pid': pid })
         r = self._query(url=url, method='GET')
         return r.json()
 
-    def get_hours_tracked(self, start_date, end_date):
+    def get_hours_tracked(self, start_date, end_date, project_id):
         """Count the total tracked hours within a given start_date and an end_date
         excluding any RUNNING real time tracked time entries
         """
-        time_entries = self.get_time_entries(start_date=start_date.isoformat(), end_date=end_date.isoformat())
+        time_entries = self.get_time_entries(start_date=start_date.isoformat(), end_date=end_date.isoformat(), pid=project_id)
 
         if time_entries is None:
             return 0
@@ -70,6 +84,17 @@ class TogglAPI(object):
 
         return (total_seconds_tracked / 60.0) / 60.0
 
+    def get_summary(self, start_date, end_date, workspace_id):
+        """ Find out the total number of hours worked """
+
+        url = self._make_report_url(section='summary',
+                                    params={'since': start_date.isoformat()+self.timezone,
+                                            'until': end_date.isoformat()+self.timezone,
+                                            'user_agent': self.useragent,
+                                            'workspace_id': workspace_id}
+                    )
+        r = self._query(url=url, method='GET')
+        return r.json()
 
 if __name__ == '__main__':
     import doctest
