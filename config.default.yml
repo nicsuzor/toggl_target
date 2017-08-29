@@ -1,0 +1,14 @@
+toggl:
+  api_key:
+  timezone: '+10:00'
+  workspace:
+  email:
+
+plotly:
+  api_key:
+  username:
+
+# How many hours allocated to each project per month
+projects:
+  project_one: 24
+  admin: 30
