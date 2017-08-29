@@ -134,8 +134,7 @@ def graph_charts(chart_data):
     )
 
     fig = go.Figure(data=traces, layout=layout)
-#    plot(fig, filename='marker-h-bar', image='png', auto_open= True)
-    py.iplot(fig, filename='timeleft', auto_open= True)
+    py.plot(fig, filename='timeleft')
 
 
 if __name__ == '__main__':
