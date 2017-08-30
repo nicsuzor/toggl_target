@@ -134,7 +134,7 @@ def graph_charts(chart_data):
     )
 
     fig = go.Figure(data=traces, layout=layout)
-    py.plot(fig, filename='timeleft')
+    py.plot(fig, filename='timeleft',auto_open=False)
 
 
 if __name__ == '__main__':
